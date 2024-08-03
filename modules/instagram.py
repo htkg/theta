@@ -2,12 +2,12 @@ import os
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
+import re
 from typing import List, Optional, Dict, Any
+from litestar.exceptions import HTTPException
 
 import httpx
 import http.cookiejar
-
-
 @dataclass(frozen=True)
 class Media:
     """Represents an Instagram media post."""
@@ -46,7 +46,16 @@ class InstagramMediaFetcher:
         self.headers = self._get_headers()
         self.cookie_jar = self._get_cookiejar()
         self.payload = self._get_payload()
+        
+    @staticmethod
+    def get_shortcode_from_url(url) -> str:
+        """Extracts the shortcode from a URL."""
+        pattern = r"(?:https?://)?(?:www\.)?instagram\.com/.+?/([a-zA-Z0-9-_]+)(?:/.*)?"
+        match = re.search(pattern, str(url))
 
+        if not match:
+            raise HTTPException(status_code=400, detail="Invalid URL")
+        return match.group(1)
     def _get_headers(self) -> Dict[str, str]:
         """
         Load headers from a file.

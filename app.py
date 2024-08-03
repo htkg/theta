@@ -4,18 +4,13 @@ from litestar.plugins.structlog import StructlogPlugin
 
 from log import logging_config
 from middleware.process_time import ProcessTimeHeader
-
+from routes.instagram import instagram_router
 
 @get("/")
-async def my_router_handler(request: Request) -> None:
+async def root_handler(request: Request) -> None:
     request.logger.info("inside a request")
     return {"hello": "world"}
 
 
-@get("/books/{book_id:int}")
-async def get_book(book_id: int) -> dict[str, int]:
-    return {"book_id": book_id}
-
-
-app = Litestar(middleware=[ProcessTimeHeader], route_handlers=[my_router_handler, get_book],
+app = Litestar(middleware=[ProcessTimeHeader], route_handlers=[root_handler, instagram_router],
                plugins=[StructlogPlugin(logging_config)])
