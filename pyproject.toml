@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 litestar = { extras = ["standard", "structlog"], version = "^2.10.0" }
+jupyter = "^1.0.0"
 
 
 [build-system]
