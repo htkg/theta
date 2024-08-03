@@ -1,0 +1,9 @@
+X-FB-Friendly-Name: PolarisNotificationsNavItemDirectQuery
+X-BLOKS-VERSION-ID: f0594120c8dba08dee2d395a000ede0009f6e1795ba7c4adf573f3cbd442ebff
+X-CSRFToken: PKdDM0rl0gDmKQcsRxbXqIYasbyuGC7z
+X-IG-App-ID: 936619743392459
+X-FB-LSD: dmcK5Z36Yf-_sfvdIEsFp3
+X-ASBD-ID: 129477
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0
+Accept: */*
+Accept-Language: en-US,en;q=0.9

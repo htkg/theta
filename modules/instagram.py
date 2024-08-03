@@ -33,8 +33,11 @@ class InstagramMediaFetcher:
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     CONFIG_DIR = os.path.join(BASE_DIR, 'config')
+    # Exported using Fiddler
     HEADERS_FILE = os.path.join(CONFIG_DIR, 'headers.txt')
+    # Should be exported with Netscape format from your browser (Firefox most popular extension was used). This is required as Instagram limited anonymous usage and it's now requires authenication to fetch media data.
     COOKIES_FILE = os.path.join(CONFIG_DIR, 'cookies.txt')
+    # Exported using Fiddler
     PAYLOAD_FILE = os.path.join(CONFIG_DIR, 'payload.txt')
     API_URL = "https://www.instagram.com/graphql/query"
 
