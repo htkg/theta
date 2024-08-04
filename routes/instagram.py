@@ -1,8 +1,9 @@
 from litestar import Router, get
-from modules.instagram import InstagramMediaFetcher
+from modules.instagram import InstagramMediaFetcher, Media
+
 
 @get("/{instagram_id:str}")
-async def instagram_handler(instagram_id: str) -> None:
+async def instagram_handler(instagram_id: str) -> Media:
     fetcher = InstagramMediaFetcher()
     media = fetcher.get_instagram_media(instagram_id)
     
