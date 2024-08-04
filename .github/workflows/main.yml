@@ -40,7 +40,7 @@ jobs:
         NETSCAPE_COOKIE_FILE: ${{ secrets.NETSCAPE_COOKIE_FILE }}
       run: |
         mkdir -p config
-        echo "$NETSCAPE_COOKIE_FILE" > config/cookies.txt
+        echo "$NETSCAPE_COOKIE_FILE" > src/config/cookies.txt
 
     - name: Run tests
       env:
