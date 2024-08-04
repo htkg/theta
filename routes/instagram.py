@@ -6,7 +6,7 @@ from modules.instagram import InstagramMediaFetcher, Media
 class InstagramController(Controller):
     """Downloads images and videos from Instagram"""
 
-    tags = ["Instagram", "Media"]
+    tags = ["Media"]
     path = "/instagram"
 
     @get("{instagram_id:str}")

@@ -7,7 +7,7 @@ from modules.nhentai import NhentaiAPI, NhentaiGallery
 class NHentaiController(Controller):
     """Downloads images and videos from Instagram"""
 
-    tags = ["NSFW", "Media"]
+    tags = ["Media"]
     path = "/nhentai"
 
     @get("{nh_id:int}")
