@@ -164,3 +164,4 @@ cython_debug/
 *ipynb*
 *cookies*.txt
 /internal_tests
+redis

@@ -10,7 +10,7 @@ class NHentaiController(Controller):
     tags = ["Media"]
     path = "/nhentai"
 
-    @get("{nh_id:int}")
+    @get("{nh_id:int}", cache=True)
     async def nhentai_handler(self, nh_id: int) -> NhentaiGallery:
         fetcher = NhentaiAPI()
         media = await fetcher.get_gallery(nh_id)
