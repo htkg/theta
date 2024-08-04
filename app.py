@@ -2,6 +2,8 @@ import os
 
 from litestar import Litestar
 from litestar.config.response_cache import ResponseCacheConfig
+from litestar.openapi import OpenAPIConfig
+from litestar.openapi.plugins import ScalarRenderPlugin
 from litestar.plugins.structlog import StructlogPlugin
 from litestar.stores.redis import RedisStore
 from litestar.stores.registry import StoreRegistry
@@ -12,15 +14,14 @@ from middleware.process_time import ProcessTimeHeader
 from routes.routers import route_handlers
 
 logger = get_logger("Theta.app")
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'default_password')
+REDIS_NAMESPACE = os.getenv('REDIS_NAMESPACE', 'default_namespace')
 
 
 def startup(app: Litestar):
     logger.info("Starting up")
-    # Load environment variables
-    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-    REDIS_PORT = os.getenv('REDIS_PORT', '6379')
-    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'default_password')
-    REDIS_NAMESPACE = os.getenv('REDIS_NAMESPACE', 'default_namespace')
     # Initialize RedisStore with environment variables
     redis = RedisStore.with_client(
         url=f"redis://redis:{REDIS_PORT}",
@@ -45,6 +46,11 @@ app = Litestar(on_startup=[startup], on_shutdown=[shutdown],
                middleware=[ProcessTimeHeader],
                route_handlers=route_handlers,
                plugins=[StructlogPlugin(log_conf)],
-               debug=True,
-               response_cache_config=ResponseCacheConfig(default_expiration=None)
+               response_cache_config=ResponseCacheConfig(default_expiration=None),
+               openapi_config=OpenAPIConfig(
+                   title="Litestar Example",
+                   description="Example of Litestar with Scalar OpenAPI docs",
+                   version="0.0.1",
+                   render_plugins=[ScalarRenderPlugin()],
+               ),
                )
