@@ -1,14 +1,17 @@
-from litestar import Router, get
+from litestar import get, Controller
+
 from modules.nhentai import NhentaiAPI, NhentaiGallery
 
 
-@get("/{nh_id:int}")
-async def nhentai_handler(nh_id: int) -> NhentaiGallery:
-    fetcher = NhentaiAPI()
-    media = fetcher.get_gallery(nh_id)
+class NHentaiController(Controller):
+    """Downloads images and videos from Instagram"""
 
-    return media
+    tags = ["NSFW", "Media"]
+    path = "/nhentai"
 
+    @get("{nh_id:int}")
+    async def nhentai_handler(self, nh_id: int) -> NhentaiGallery:
+        fetcher = NhentaiAPI()
+        media = await fetcher.get_gallery(nh_id)
 
-nhentai_router = Router(path="/nhentai", route_handlers=[nhentai_handler])
-
+        return media

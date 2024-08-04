@@ -1,13 +1,17 @@
-from litestar import Router, get
+from litestar import get, Controller
+
 from modules.instagram import InstagramMediaFetcher, Media
 
 
-@get("/{instagram_id:str}")
-async def instagram_handler(instagram_id: str) -> Media:
-    fetcher = InstagramMediaFetcher()
-    media = fetcher.get_instagram_media(instagram_id)
-    
-    return media
+class InstagramController(Controller):
+    """Downloads images and videos from Instagram"""
 
+    tags = ["Instagram", "Media"]
+    path = "/instagram"
 
-instagram_router = Router(path="/instagram", route_handlers=[instagram_handler])
+    @get("{instagram_id:str}")
+    async def instagram_handler(self, instagram_id: str) -> Media | None:
+        fetcher = InstagramMediaFetcher()
+        media = await fetcher.get_instagram_media(instagram_id)
+
+        return media

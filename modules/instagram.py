@@ -223,7 +223,7 @@ class InstagramMediaFetcher:
             comments=media.get("comment_count")
         )
 
-    def get_instagram_media(self, media_id: str) -> Media:
+    async def get_instagram_media(self, media_id: str) -> Media:
         """
         Fetch Instagram media data.
 
@@ -249,8 +249,8 @@ class InstagramMediaFetcher:
 
         logger.info(f"Fetching Instagram media with id '{media_id}'")
 
-        with httpx.Client(headers=self.headers, cookies=self.cookie_jar) as client:
-            response = client.post(self.API_URL, json=self.payload)
+        async with httpx.AsyncClient(headers=self.headers, cookies=self.cookie_jar) as client:
+            response = await client.post(self.API_URL, json=self.payload)
             response.raise_for_status()
             json_data = response.json()
 

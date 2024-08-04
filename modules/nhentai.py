@@ -1,6 +1,7 @@
+from dataclasses import dataclass
+from typing import List
+
 import httpx
-from typing import Dict, List
-from dataclasses import dataclass, fields
 
 
 @dataclass(frozen=True)
@@ -8,6 +9,7 @@ class Title:
     english: str
     japanese: str
     pretty: str
+
 
 @dataclass(frozen=True)
 class Tag:
@@ -17,11 +19,13 @@ class Tag:
     url: str
     count: int
 
+
 @dataclass(frozen=True)
 class Images:
     pages: List[str]
     cover: str
     thumbnail: str
+
 
 @dataclass(frozen=True)
 class NhentaiGallery:
@@ -34,6 +38,7 @@ class NhentaiGallery:
     tags: List[Tag]
     num_pages: int
     num_favorites: int
+
 
 class NhentaiAPI:
     base_url: str = "https://nhentai.net"
