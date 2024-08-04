@@ -23,7 +23,7 @@ async def test_nhentai_by_id(app):
             assert json_response['id'] == 489600
             assert json_response['title']['pretty'] == "Kiyoki Kororo to Amai Ame"
         else:
-            assert response.json()['detail'] == "Gallery not found"
+            assert response.json()['detail'] == "Not found"
 
 
 @pytest.mark.asyncio
@@ -37,4 +37,4 @@ async def test_nhentai_random(app):
             assert json_response['id'] is not None
             assert json_response['title'] is not None
         else:
-            assert response.json()['detail'] == "Gallery not found"
+            assert response.json()['detail'] == "Not found"
