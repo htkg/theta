@@ -1,9 +1,11 @@
 import random
 
-from litestar import get, Controller
 from httpx._exceptions import HTTPStatusError
-from modules.nhentai import NhentaiAPI, NhentaiGallery
+from litestar import get, Controller
 from litestar.exceptions import NotFoundException, HTTPException
+
+from modules.nhentai import NhentaiAPI, NhentaiGallery
+
 
 class NHentaiController(Controller):
     """Downloads images and videos from Instagram"""

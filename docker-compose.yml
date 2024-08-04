@@ -9,7 +9,7 @@ services:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
       - .:/app
-    command: [ "poetry", "run", "litestar", "run", "--host", "0.0.0.0", "--reload"]
+    command: [ "poetry", "run", "litestar", "run", "--host", "0.0.0.0", "--reload" ]
     env_file:
       - .env
     depends_on:
