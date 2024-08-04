@@ -9,4 +9,4 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    command: [ "poetry", "run", "litestar", "run", "--host", "0.0.0.0", "--reload"]
+    command: [ "poetry", "run", "litestar", "run", "--host", "0.0.0.0", "--reload", "--debug"]

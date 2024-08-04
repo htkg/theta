@@ -3,7 +3,6 @@ from modules.instagram import InstagramMediaFetcher
 
 @get("/{instagram_id:str}")
 async def instagram_handler(instagram_id: str) -> None:
-    print(instagram_id)
     fetcher = InstagramMediaFetcher()
     media = fetcher.get_instagram_media(instagram_id)
     

@@ -1,19 +1,25 @@
-import os
+import http.cookiejar
 import json
-from dataclasses import dataclass, field
-from datetime import datetime, UTC
+import os
 import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
-from litestar.exceptions import HTTPException
 
 import httpx
-import http.cookiejar
+from litestar.exceptions import HTTPException
+from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from structlog import get_logger
+
+logger = get_logger('instagram')
+
+
 @dataclass(frozen=True)
 class Media:
     """Represents an Instagram media post."""
     id: str
     source: str
-    attachments: List[Dict[str, Any]]
+    attachments: List[str]
     retrieved_at: datetime
     published_at: datetime
     source_url: Optional[str] = None
@@ -31,31 +37,19 @@ class Media:
 class InstagramMediaFetcher:
     """A class for fetching Instagram media data."""
 
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    CONFIG_DIR = os.path.join(BASE_DIR, 'config')
-    # Exported using Fiddler
-    HEADERS_FILE = os.path.join(CONFIG_DIR, 'headers.txt')
-    # Should be exported with Netscape format from your browser (Firefox most popular extension was used). This is required as Instagram limited anonymous usage and it's now requires authenication to fetch media data.
-    COOKIES_FILE = os.path.join(CONFIG_DIR, 'cookies.txt')
-    # Exported using Fiddler
-    PAYLOAD_FILE = os.path.join(CONFIG_DIR, 'payload.txt')
-    API_URL = "https://www.instagram.com/graphql/query"
+    BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    CONFIG_DIR: str = os.path.join(BASE_DIR, 'config')
+    HEADERS_FILE: str = os.path.join(CONFIG_DIR, 'headers.txt')
+    COOKIES_FILE: str = os.path.join(CONFIG_DIR, 'cookies.txt')
+    PAYLOAD_FILE: str = os.path.join(CONFIG_DIR, 'payload.txt')
+    API_URL: str = "https://www.instagram.com/graphql/query"
 
     def __init__(self) -> None:
         """Initialize the InstagramMediaFetcher with headers, cookies, and payload."""
-        self.headers = self._get_headers()
-        self.cookie_jar = self._get_cookiejar()
-        self.payload = self._get_payload()
-        
-    @staticmethod
-    def get_shortcode_from_url(url) -> str:
-        """Extracts the shortcode from a URL."""
-        pattern = r"(?:https?://)?(?:www\.)?instagram\.com/.+?/([a-zA-Z0-9-_]+)(?:/.*)?"
-        match = re.search(pattern, str(url))
+        self.headers: Dict[str, str] = self._get_headers()
+        self.cookie_jar: http.cookiejar.MozillaCookieJar = self._get_cookiejar()
+        self.payload: Dict[str, Any] = self._get_payload()
 
-        if not match:
-            raise HTTPException(status_code=400, detail="Invalid URL")
-        return match.group(1)
     def _get_headers(self) -> Dict[str, str]:
         """
         Load headers from a file.
@@ -73,7 +67,7 @@ class InstagramMediaFetcher:
 
     def _get_cookiejar(self) -> http.cookiejar.MozillaCookieJar:
         """
-        Load cookies from a file to authenticate user.
+        Load cookies from a file to authenticate the user.
 
         Returns:
             http.cookiejar.MozillaCookieJar: A cookie jar object.
@@ -97,6 +91,27 @@ class InstagramMediaFetcher:
         return payload
 
     @staticmethod
+    def get_shortcode_from_url(url: str) -> str:
+        """
+        Extracts the shortcode from a URL.
+
+        Args:
+            url (str): The URL to extract the shortcode from.
+
+        Returns:
+            str: The extracted shortcode.
+
+        Raises:
+            HTTPException: If the URL is invalid.
+        """
+        pattern = r"(?:https?://)?(?:www\.)?instagram\.com/.+?/([a-zA-Z0-9-_]+)(?:/.*)?"
+        match = re.search(pattern, url)
+
+        if not match:
+            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Invalid URL")
+        return match.group(1)
+
+    @staticmethod
     def _get_tags_from_caption(caption: Optional[str]) -> List[str]:
         """
         Extract hashtags from the caption.
@@ -107,7 +122,73 @@ class InstagramMediaFetcher:
         Returns:
             List[str]: A list of hashtags.
         """
+        if not caption:
+            return []
         return caption.split(' #')[1:] if caption else []
+
+    @staticmethod
+    def extract_max_resolutions(candidates: List[Dict[str, Any]]) -> Optional[str]:
+        """
+        Extract the URL of the highest resolution media from candidates.
+
+        Args:
+            candidates (List[Dict[str, Any]]): List of media candidates.
+
+        Returns:
+            Optional[str]: URL of the highest resolution media or None.
+        """
+        if not candidates:
+            return None
+        try:
+            max_resolution = max(candidates, key=lambda x: x['width'] * x['height'])
+            return max_resolution['url']
+        except (KeyError, TypeError) as e:
+            logger.error("An error occurred while extracting max resolutions: %s", e)
+            return None
+
+    def get_best_resolution(self, item: Dict[str, Any]) -> Optional[str]:
+        """
+        Get the best resolution media URL from an item.
+
+        Args:
+            item (Dict[str, Any]): A dictionary containing media item information.
+
+        Returns:
+            Optional[str]: URL of the best resolution media or None.
+        """
+        if 'video_versions' in item and item['video_versions']:
+            video_versions = item.get('video_versions', [])
+            return self.extract_max_resolutions(video_versions)
+
+        if 'image_versions2' in item:
+            image_versions = item.get('image_versions2', {}).get('candidates', [])
+            return self.extract_max_resolutions(image_versions)
+
+        return None
+
+    def extract_candidates(self, media: Dict[str, Any]) -> List[Optional[str]]:
+        """
+        Extract candidates for the best resolution media URLs.
+
+        Args:
+            media (Dict[str, Any]): A dictionary containing media information.
+
+        Returns:
+            List[Optional[str]]: A list of the best resolution media URLs.
+        """
+        candidates = []
+
+        if 'carousel_media' in media and media['carousel_media']:
+            for carousel_item in media['carousel_media']:
+                best_resolution = self.get_best_resolution(carousel_item)
+                if best_resolution:
+                    candidates.append(best_resolution)
+        else:
+            best_resolution = self.get_best_resolution(media)
+            if best_resolution:
+                candidates.append(best_resolution)
+
+        return candidates
 
     def _parse_media_json(self, media_data: Dict[str, Any]) -> Media:
         """
@@ -120,23 +201,22 @@ class InstagramMediaFetcher:
             Media: A Media object containing the parsed data.
         """
         media = media_data.get("data", {}).get("xdt_api__v1__media__shortcode__web_info", {}).get("items", [])[0]
-
         owner = media.get("owner", {})
-        caption = media.get('caption', {})
+        caption = media.get('caption')
+        caption_text = caption.get('text') if isinstance(caption, dict) else None
 
         return Media(
             id=media.get("code"),
             source="Instagram",
-            attachments=media.get('video_versions', []) or [media.get('image_versions2')] if media.get(
-                'image_versions2') else [],
-            retrieved_at=datetime.now(UTC),
-            published_at=datetime.fromtimestamp(media.get("taken_at", 0), UTC),
+            attachments=self.extract_candidates(media),
+            retrieved_at=datetime.now(timezone.utc),
+            published_at=datetime.fromtimestamp(media.get("taken_at", 0), timezone.utc),
             source_url=f"https://www.instagram.com/p/{media.get('code')}",
-            tags=self._get_tags_from_caption(caption.get('text')),
+            tags=self._get_tags_from_caption(caption_text),
             author_id=owner.get("id"),
             author_name=owner.get("username"),
             author_url=f"https://www.instagram.com/{owner.get('username', '')}",
-            description=caption.get('text'),
+            description=caption_text,
             views=media.get("view_count"),
             likes=media.get("like_count"),
             title=media.get("title"),
@@ -154,20 +234,33 @@ class InstagramMediaFetcher:
             Media: A Media object containing the fetched data.
 
         Raises:
-            ValueError: If an HTTP error occurs, the JSON response is invalid,
-                        or if there's a missing key in the response.
+            HTTPException: If the media_id is invalid, an HTTP error occurs,
+                           the JSON response is invalid, or if there's a missing key in the response.
         """
+        media_id_pattern = r'^[A-Za-z0-9_-]{7,39}$'
+        if not re.match(media_id_pattern, media_id):
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail="Invalid media_id format. It should be 7-14 characters long and contain only letters, numbers, underscores, or hyphens.",
+                extra={"media_id": media_id}
+            )
+
         self.payload["variables"]["shortcode"] = media_id
 
-        try:
-            with httpx.Client(headers=self.headers, cookies=self.cookie_jar) as client:
-                response = client.post(self.API_URL, json=self.payload)
-                response.raise_for_status()
-                media = self._parse_media_json(response.json())
-            return media
-        except httpx.HTTPStatusError as e:
-            raise ValueError(f"HTTP error occurred: {e}")
-        except json.JSONDecodeError:
-            raise ValueError("Invalid JSON response")
-        except KeyError as e:
-            raise ValueError(f"Missing key in response: {e}")
+        logger.info(f"Fetching Instagram media with id '{media_id}'")
+
+        with httpx.Client(headers=self.headers, cookies=self.cookie_jar) as client:
+            response = client.post(self.API_URL, json=self.payload)
+            response.raise_for_status()
+            json_data = response.json()
+
+        items = json_data.get("data", {}).get("xdt_api__v1__media__shortcode__web_info", {}).get("items")
+        if not items or not isinstance(items, list) or len(items) == 0:
+            logger.error(f"Media with id '{media_id}' not found or has unexpected structure")
+            raise HTTPException(
+                status_code=HTTP_404_NOT_FOUND,
+                detail=f"Media with id '{media_id}' not found or has unexpected structure",
+                extra={"media_id": media_id})
+
+        media = self._parse_media_json(json_data)
+        return media

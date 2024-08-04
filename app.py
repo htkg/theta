@@ -13,4 +13,4 @@ async def root_handler(request: Request) -> None:
 
 
 app = Litestar(middleware=[ProcessTimeHeader], route_handlers=[root_handler, instagram_router],
-               plugins=[StructlogPlugin(logging_config)])
+               plugins=[StructlogPlugin(logging_config)], debug=True)
