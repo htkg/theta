@@ -20,25 +20,25 @@ REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', 'default_password')
 REDIS_NAMESPACE = os.getenv('REDIS_NAMESPACE', 'default_namespace')
 
 
+def initialize_stores(app: Litestar):
+    if not app.state.get("testing", False):
+        redis = RedisStore.with_client(
+            url=f"redis://redis:{REDIS_PORT}",
+            password=REDIS_PASSWORD,
+            namespace=REDIS_NAMESPACE
+        )
+        stores = StoreRegistry(default_factory=redis.with_namespace)
+        app.stores = stores
+
+
 def startup(app: Litestar):
     logger.info("Starting up")
-    # Initialize RedisStore with environment variables
-    redis = RedisStore.with_client(
-        url=f"redis://redis:{REDIS_PORT}",
-        password=REDIS_PASSWORD,
-        namespace=REDIS_NAMESPACE
-    )
-
-    # Initialize StoreRegistry with the configured RedisStore
-    stores = StoreRegistry(default_factory=redis.with_namespace)
-    app.stores = stores
+    initialize_stores(app)
     logger.info(f"Theta API is running!")
 
 
 def shutdown(app: Litestar):
     logger.info("Shutting down")
-    # Close the Redis connection when the application shuts down
-    app.stores = None
 
 
 # Initialize the Litestar application with necessary configurations
