@@ -13,14 +13,12 @@ from structlog import get_logger
 
 logger = get_logger('instagram')
 
-
 @dataclass(frozen=True)
 class Media:
     """Represents an Instagram media post."""
     id: str
     source: str
     attachments: List[str]
-    retrieved_at: datetime
     published_at: datetime
     source_url: Optional[str] = None
     tags: Optional[List[str]] = field(default_factory=list)
@@ -209,7 +207,6 @@ class InstagramMediaFetcher:
             id=media.get("code"),
             source="Instagram",
             attachments=self.extract_candidates(media),
-            retrieved_at=datetime.now(timezone.utc),
             published_at=datetime.fromtimestamp(media.get("taken_at", 0), timezone.utc),
             source_url=f"https://www.instagram.com/p/{media.get('code')}",
             tags=self._get_tags_from_caption(caption_text),
