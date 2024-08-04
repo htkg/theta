@@ -13,6 +13,7 @@ from structlog import get_logger
 
 logger = get_logger('instagram')
 
+
 @dataclass(frozen=True)
 class Media:
     """Represents an Instagram media post."""

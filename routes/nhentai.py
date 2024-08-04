@@ -1,5 +1,6 @@
-from litestar import get, Controller
 import random
+
+from litestar import get, Controller
 
 from modules.nhentai import NhentaiAPI, NhentaiGallery
 
