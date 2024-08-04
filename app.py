@@ -9,7 +9,7 @@ from litestar.stores.redis import RedisStore
 from litestar.stores.registry import StoreRegistry
 from structlog import get_logger
 
-from log import log_conf
+from middleware.log import log_conf
 from middleware.process_time import ProcessTimeHeader
 from routes.routers import route_handlers
 
