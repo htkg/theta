@@ -23,7 +23,7 @@ RUN pip install poetry
 # Set working directory
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock* /app/
+COPY pyproject.toml /app/
 
 # Install dependencies
 RUN poetry install --no-interaction --no-ansi
