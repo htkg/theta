@@ -44,7 +44,12 @@ log_conf = StructlogConfig(enable_middleware_logging=True,
                                            "level": 100,
                                            "handlers": ["queue_listener"],
                                        },
-                                       "watchfiles.main": {
+                                       "watchfiles": {
+                                           "propagate": False,
+                                           "level": 100,
+                                           "handlers": ["queue_listener"],
+                                       },
+                                       "httpx": {
                                            "propagate": False,
                                            "level": 100,
                                            "handlers": ["queue_listener"],

@@ -13,7 +13,8 @@ class NHentaiController(Controller):
     tags = ["Media"]
     path = "/nhentai"
 
-    @get("{nh_id:int}", cache=True)
+
+    @get("{nh_id:int}", cache=True, description="Gets doujinshi / manga from NHentai", summary="Get doujinshi")
     async def nhentai_handler(self, nh_id: int) -> NhentaiGallery:
         fetcher = NhentaiAPI()
 
@@ -27,7 +28,7 @@ class NHentaiController(Controller):
 
         return media
 
-    @get("/random")
+    @get("/random", description="Gets random doujinshi / manga from NHentai", summary="Get random doujinshi")
     async def random_handler(self) -> NhentaiGallery:
         fetcher = NhentaiAPI()
         upper_limit = 522723
