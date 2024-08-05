@@ -21,11 +21,11 @@ RUN apt-get update -qq && apt-get install -y \
 RUN pip install poetry
 
 # Set working directory
-WORKDIR /Theta
+WORKDIR /theta
 
-COPY pyproject.toml /Theta/
+COPY pyproject.toml /theta/
 
 # Install dependencies
 RUN poetry install --no-interaction --no-ansi
 
-COPY . /Theta/
+COPY . /theta/
