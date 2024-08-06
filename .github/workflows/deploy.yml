@@ -50,7 +50,7 @@ jobs:
             echo "$ENV_FILE_PROD" > .env
 
             # Build and start the application with the .env file
-            docker-compose --env-file .env -p theta up -d --build
+            docker compose --env-file .env -p theta up -d --build
             docker system prune -af
           EOF
 
