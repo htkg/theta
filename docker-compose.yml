@@ -21,6 +21,8 @@ services:
     restart: always
     ports:
       - "${REDIS_BIND_IP:-127.0.0.1}:${REDIS_PORT}:${REDIS_PORT}"
+    env_file:
+      - .env
     command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./redis:/data

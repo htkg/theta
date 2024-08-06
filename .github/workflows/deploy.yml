@@ -1,0 +1,59 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to remote server
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          NETSCAPE_COOKIE_FILE: ${{ secrets.NETSCAPE_COOKIE_FILE }}
+          REMOTE_PROJECT_DIR: ${{ secrets.REMOTE_PROJECT_DIR }}
+          ENV_FILE_PROD: ${{ secrets.ENV_FILE_PROD }}
+        run: |
+          ssh $REMOTE_USER@$REMOTE_HOST << EOF
+            # Create project directory if it doesn't exist
+            mkdir -p $REMOTE_PROJECT_DIR
+            cd $REMOTE_PROJECT_DIR
+
+            # Clone or pull the repository
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              git clone ${{ github.server_url }}/${{ github.repository }}.git .
+            fi
+
+            # Create or overwrite cookies file
+            mkdir -p src/config
+            echo "$NETSCAPE_COOKIE_FILE" > src/config/cookies.txt
+
+            # Create or overwrite .env file
+            echo "$ENV_FILE_PROD" > .env
+
+            # Build and start the application with the .env file
+            docker-compose --env-file .env -p theta up -d --build
+            docker system prune -af
+          EOF
+
+      - name: Clean up
+        if: always()
+        run: rm -rf ~/.ssh
