@@ -50,7 +50,7 @@ jobs:
             echo "$ENV_FILE_PROD" > .env
           
             # Connect the app service to the reverse-proxy network
-            docker network connect $REVERSE_PROXY_NETWORK theta-app-1
+            docker network connect reverse-proxy theta-app-1
           
             # Build and start the application with the .env file
             docker compose --env-file .env -p theta up -d --build
