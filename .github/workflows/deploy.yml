@@ -30,7 +30,7 @@ jobs:
           REMOTE_PROJECT_DIR: ${{ secrets.REMOTE_PROJECT_DIR }}
           ENV_FILE_PROD: ${{ secrets.ENV_FILE_PROD }}
         run: |
-          ssh $REMOTE_USER@$REMOTE_HOST << EOF
+          ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST << EOF
             # Create project directory if it doesn't exist
             mkdir -p $REMOTE_PROJECT_DIR
             cd $REMOTE_PROJECT_DIR
