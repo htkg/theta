@@ -48,12 +48,12 @@ jobs:
 
             # Create or overwrite .env file
             echo "$ENV_FILE_PROD" > .env
+
+            # Build and start the application with the .env file
+            docker compose --env-file .env -p theta up -d --build
           
             # Connect the app service to the reverse-proxy network
             docker network connect reverse-proxy theta-app-1
-          
-            # Build and start the application with the .env file
-            docker compose --env-file .env -p theta up -d --build
           EOF
 
       - name: Clean up
