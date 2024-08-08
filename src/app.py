@@ -9,8 +9,8 @@ from litestar.stores.redis import RedisStore
 from litestar.stores.registry import StoreRegistry
 from structlog import get_logger
 
-from src.middleware.log import log_conf
-from src.middleware.process_time import ProcessTimeHeader
+from src.helpers.log import log_conf
+from src.helpers.middlewares import ProcessTimeHeader
 from src.routes import route_handlers
 
 logger = get_logger("Theta.app")
