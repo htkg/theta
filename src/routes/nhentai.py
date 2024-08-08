@@ -1,7 +1,7 @@
 import random
 
 from httpx._exceptions import HTTPStatusError
-from litestar import get, Controller
+from litestar import get, Controller, Request
 from litestar.exceptions import NotFoundException, HTTPException
 
 from src.modules.nhentai import NhentaiAPI, NhentaiGallery
@@ -13,10 +13,10 @@ class NHentaiController(Controller):
     tags = ["Media"]
     path = "/nhentai"
 
-
     @get("{nh_id:int}", cache=True, description="Gets doujinshi / manga from NHentai", summary="Get doujinshi")
-    async def nhentai_handler(self, nh_id: int) -> NhentaiGallery:
+    async def nhentai_handler(self, nh_id: int, request: Request) -> NhentaiGallery:
         fetcher = NhentaiAPI()
+        request.set_session({"user_id": str(nh_id)})
 
         try:
             media = await fetcher.get_gallery(nh_id)
