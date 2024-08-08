@@ -31,11 +31,12 @@ class NHentaiController(Controller):
     @get("/random", description="Gets random doujinshi / manga from NHentai", summary="Get random doujinshi")
     async def random_handler(self) -> NhentaiGallery:
         fetcher = NhentaiAPI()
-        upper_limit = 522723
+        upper_limit = 525000
         lower_limit = 1
         random_number = random.randint(lower_limit, upper_limit)
         try:
             media = await fetcher.get_gallery(random_number)
+
         except HTTPStatusError:
             random_number = random.randint(lower_limit, upper_limit)
             media = await fetcher.get_gallery(random_number)

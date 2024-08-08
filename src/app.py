@@ -29,16 +29,16 @@ def initialize_stores(app: Litestar):
 
         cache = redis.with_namespace("cache")
         stores = StoreRegistry(stores={"cache": cache})
-        app.stores = stores
+        return stores
 
 
 def startup(app: Litestar):
     logger.info("Starting up")
-    initialize_stores(app)
+    app.stores = initialize_stores(app)
     logger.info(f"Theta API is running!")
 
 
-def shutdown(app: Litestar):
+def shutdown():
     logger.info("Shutting down")
 
 
