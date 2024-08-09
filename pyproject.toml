@@ -6,7 +6,7 @@ authors = ["htkg <howtokillgarry@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-watchfiles = "0.21.0"
+watchfiles = "0.23.0"
 python = "^3.12"
 litestar = { extras = ["standard", "structlog", "redis", "jwt"], version = "^2.10.0" }
 jupyter = "^1.0.0"
