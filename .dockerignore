@@ -166,3 +166,4 @@ cython_debug/
 *cookies*.txt
 /internal_tests
 redis
+mongo

@@ -11,6 +11,7 @@ from structlog import get_logger
 
 from src.helpers.log import log_conf
 from src.helpers.middlewares import ProcessTimeHeader
+from src.helpers.auth import login_handler, jwt_auth
 from src.routes import route_handlers
 
 logger = get_logger("Theta.app")
@@ -28,7 +29,8 @@ def initialize_stores(app: Litestar):
         )
 
         cache = redis.with_namespace("cache")
-        stores = StoreRegistry(stores={"cache": cache})
+        users = redis.with_namespace("users")
+        stores = StoreRegistry(stores={"cache": cache, "users": users})
         return stores
 
 
@@ -42,14 +44,15 @@ def shutdown():
     logger.info("Shutting down")
 
 
-app = Litestar(on_startup=[startup], on_shutdown=[shutdown],
+app = Litestar(on_startup=[startup], on_shutdown=[shutdown], debug=True,
                middleware=[ProcessTimeHeader],
-               route_handlers=route_handlers,
+               on_app_init=[jwt_auth.on_app_init],
+               route_handlers=route_handlers + [login_handler],
                plugins=[StructlogPlugin(log_conf)],
                response_cache_config=ResponseCacheConfig(default_expiration=None, store='cache'),
                openapi_config=OpenAPIConfig(
-                   title="Litestar Example",
-                   description="Example of Litestar with Scalar OpenAPI docs",
+                   title="Theta",
+                   description="Theta API",
                    version="0.0.1",
                    render_plugins=[ScalarRenderPlugin()],
                ),
